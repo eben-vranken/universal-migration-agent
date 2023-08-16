@@ -2,54 +2,64 @@
 from config.metadata_loader import read_config, print_project_info
 
 # Packages
-import openai, json
+import openai, json, subprocess
 
 
+# Run the vma_config.json compiler
+subprocess.run(["python", "vma_config.py"])
+
+# These are the different steps of the VMA Pipeline
+# 1. Initialization
 # Load agent config
+print("1. Initialization\n")
+
 with open("vma_config.json", "r") as vma_config:
     vma_config = json.load(vma_config)
 
-
 # Initalize VMA
-messages = [{"role": "assistant", "content": vma_config["init"]["prompt"]}]
+messages = [{"role": "system", "content": vma_config["init"]["prompt"]}]
 
 
-# These are the different steps of the VMA Pipeline
+# 2. Parsing and Analysis
 def parsing_and_analysis():
-    add_message("system", vma_config["PAA"]["prompt"])
+    print("2. Parsing and Analysis")
+    add_message("user", vma_config["PAA"]["prompt"])
 
-    with open("to-migrate\\test.html", "r") as code:
-        add_message("user", code.read())
-        code.close()
+    with open("to-migrate\App.vue", "r") as to_migrate_code:
+        add_message("user", to_migrate_code.read())
+        to_migrate_code.close()
 
-    response = get_response("gpt-3.5-turbo")
+    response = get_response(vma_config["PAA"]["model"])
 
+    # Print Response
+    print(response['choices'][0], "\n")
+
+# 3. Transforming and Refactoring
+def transforming_and_refactoring():
+    print("3. Transforming and Refactoring\n")
+    add_message("user", vma_config["TAR"]["prompt"])
+
+    response = get_response(vma_config["TAR"]["model"])
+
+    # Print response
+    print(response['choices'][0], "\n")
+
+    # Write migrated code to 'migrated' folder
+    content = response["choices"][0]["message"]
+
+    # Write content to the file
+    with open("migrated/App.vue", "w") as f:
+        f.write(json.dump(content))
 
 def get_response(model):
     response = openai.ChatCompletion.create(
         model=model,
         temperature=0,
-        stream=True,
         messages=messages,
-        api_key="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",
+        api_key="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",
     )
 
-    # get the refactored script
-    for entry in response:
-        choice = entry["choices"][0]
-        if choice["finish_reason"] == "stop":
-            break
-
-        if choice["finish_reason"] is not None:
-            print("ERR: Unexpected finish_reason", choice["finish_reason"])
-            sys.exit(1)
-
-        delta_content = choice["delta"].get("content")
-        if delta_content is not None:
-            print(delta_content, end="")
-
     return response
-
 
 def add_message(role, code):
     messages.append({"role": role, "content": code})
@@ -62,3 +72,6 @@ if __name__ == "__main__":
     print_project_info(project_config)
 
     parsing_and_analysis()
+    transforming_and_refactoring()
+
+    print("\nMigration Complete!")
