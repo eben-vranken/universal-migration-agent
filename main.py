@@ -49,7 +49,7 @@ def transforming_and_refactoring():
 
     # Write content to the file
     with open("migrated/App.vue", "w") as f:
-        f.write(json.dump(content))
+        f.write(json.dumps(content))
 
 def get_response(model):
     response = openai.ChatCompletion.create(
