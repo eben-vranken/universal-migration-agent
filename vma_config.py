@@ -11,7 +11,7 @@ data = {
     "input": input_value,
     "output": output_value,
     "Initialization": {
-        "model": "gpt-3.5-turbo-16k",
+        "model": "gpt-4",
         "prompt": f"You are an assistant designed to help developers migrate their code from {input_value} to {output_value}. It is crucial that you follow your steps closely. You will never output any small talk, text, or anything unrelated to your objective. Only output what is desired of you. We will continue with the migration process after this message. Explain in one-two sentences what you are going to do.",
     },
     "Parsing and Analysis": {
@@ -20,7 +20,7 @@ data = {
     },
     "Transformating and Refactoring": {
         "model": "gpt-3.5-turbo-16k",
-        "prompt": f"Perform Transformation and Refactoring on the provided JSON Analysis of the codebase, translating it into the {output_value} coding language. Focus solely on generating code and avoid any form of small talk or unrelated outputs. The goal is to efficiently convert the given analysis into functional code in the specified programming language. Make sure to surround the code you write in triple backticks",
+        "prompt": f"Perform Transformation and Refactoring on the provided JSON Analysis of the codebase, translating it into the {output_value} coding language. Focus solely on generating code and avoid any form of small talk or unrelated outputs. The goal is to efficiently convert the given analysis into functional code in the specified programming language. Make sure to surround the code you write in triple backticks. No need to format the backticks in the programming language, just leave the backticks as they are.",
     },
     "Processing and Parsing": {
         "model": "gpt-3.5-turbo-16k",

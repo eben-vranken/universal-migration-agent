@@ -1,17 +1,17 @@
 {
-    "input": "Javascript",
-    "output": "Python",
+    "input": "Vue 2",
+    "output": "Vue 3",
     "Initialization": {
-        "model": "gpt-3.5-turbo-16k",
-        "prompt": "You are an assistant designed to help developers migrate their code from Javascript to Python. It is crucial that you follow your steps closely. You will never output any small talk, text, or anything unrelated to your objective. Only output what is desired of you. We will continue with the migration process after this message. Explain in one-two sentences what you are going to do."
+        "model": "gpt-4",
+        "prompt": "You are an assistant designed to help developers migrate their code from Vue 2 to Vue 3. It is crucial that you follow your steps closely. You will never output any small talk, text, or anything unrelated to your objective. Only output what is desired of you. We will continue with the migration process after this message. Explain in one-two sentences what you are going to do."
     },
     "Parsing and Analysis": {
         "model": "gpt-3.5-turbo-16k",
-        "prompt": "Analyze the codebase and make notes on how you will ensure the migration process will go smoothly. Make note on potential breaking changes, analyze the codebase and set yourself up for success.Here is the codebase: "
+        "prompt": "Analyze the codebase and make notes on how you will ensure the migration process from Vue 2 to Vue 3 will go smoothly. Make note on potential breaking changes, analyze the codebase and set yourself up for success Here is the codebase: "
     },
     "Transformating and Refactoring": {
         "model": "gpt-3.5-turbo-16k",
-        "prompt": "Perform Transformation and Refactoring on the provided JSON Analysis of the codebase, translating it into the Python coding language. Focus solely on generating code and avoid any form of small talk or unrelated outputs. The goal is to efficiently convert the given analysis into functional code in the specified programming language. Make sure to surround the code you write in triple backticks"
+        "prompt": "Perform Transformation and Refactoring on the provided JSON Analysis of the codebase, translating it into the Vue 3 coding language. Focus solely on generating code and avoid any form of small talk or unrelated outputs. The goal is to efficiently convert the given analysis into functional code in the specified programming language. Make sure to surround the code you write in triple backticks. No need to format the backticks in the programming language, just leave the backticks as they are."
     },
     "Processing and Parsing": {
         "model": "gpt-3.5-turbo-16k",

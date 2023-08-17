@@ -9,7 +9,6 @@ load_dotenv()
 # Run the vma_config.json compiler
 subprocess.run(["python", "vma_config.py"])
 
-
 # These are the different steps of the VMA Pipeline
 # 1. Initialization
 # Load agent config
@@ -52,7 +51,7 @@ def initialization():
 
 # 2. Parsing and Analysis
 def parsing_and_analysis():
-    print("2. Parsing and Analysis")
+    print("\n2. Parsing and Analysis")
 
     message = f"{vma_config['Parsing and Analysis']['prompt']}{files}"
     
@@ -63,13 +62,15 @@ def parsing_and_analysis():
 
 # 3. Transforming and Refactoring
 def transforming_and_refactoring():
-    print("3. Transforming and Refactoring\n")
+    print("\n3. Transforming and Refactoring\n")
 
     message = f"Provided is the JSON Analysis: {json_analysis}. {vma_config['Transformating and Refactoring']['prompt']}"
     add_message("user", message)
 
     response = get_response(vma_config["Transformating and Refactoring"]["model"])
 
+    print("DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG")
+    print(response)
     # Write migrated code to 'migrated' folder
 
     # This is the whole message, not just the code
@@ -79,7 +80,7 @@ def transforming_and_refactoring():
     # This shouldn't be too much of an issue though, if it is, allow UMA to process this step with a more qualified model.
 
     global code
-    code = response
+    code = re.search(r'```(.*?)```', response, re.DOTALL).group(1)
     print(code)
 
 
@@ -127,8 +128,7 @@ def get_response(model):
             collected_messages.append(chunk['choices'][0]['delta']['content'])
             print(chunk['choices'][0]['delta']['content'], end='')
         except:
-            collected_messages.append(chunk['choices'][0]['delta'])
-            print(chunk['choices'][0]['delta'], end='')
+            continue
 
 
     return ''.join([str(elem) for elem in collected_messages])
