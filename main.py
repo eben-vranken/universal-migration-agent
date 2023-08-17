@@ -1,5 +1,5 @@
 # Packages
-import openai, json, subprocess, os
+import openai, json, subprocess, os, re
 
 # Environment Variables
 from dotenv import load_dotenv
@@ -13,18 +13,13 @@ subprocess.run(["python", "vma_config.py"])
 # These are the different steps of the VMA Pipeline
 # 1. Initialization
 # Load agent config
-print("1. Initialization")
 
-with open("vma_config.json", "r") as vma_config:
-    vma_config = json.load(vma_config)
+with open("vma_config.json", "r") as config:
+    vma_config = json.load(config)
 
-print("VMA_Config Initialized!\n")
-
-# Initalize VMA
 messages = [{"role": "system", "content": vma_config["Initialization"]["prompt"]}]
-root_dir = "to-migrate/"
 json_analysis = ""
-
+root_dir = "to-migrate/"
 
 # Recursive function to read everything of a directory
 def scan_dir(dir):
@@ -41,7 +36,6 @@ def scan_dir(dir):
 
     return files
 
-
 # Scan the entire 'to-migrate' directory
 # Read each file individually
 files = {}
@@ -49,22 +43,22 @@ for file in scan_dir(root_dir):
     f = open(f"{file}", "r")
     files[file] = f.read()
 
+# 1. Initialization
+def initialization():
+    print("1. Initialization\n")
+
+    get_response(vma_config["Initialization"]["model"])
+
 
 # 2. Parsing and Analysis
 def parsing_and_analysis():
     print("2. Parsing and Analysis")
 
     message = f"{vma_config['Parsing and Analysis']['prompt']}{files}"
-    add_message("user", message)
-    response = get_response(vma_config["Parsing and Analysis"]["model"])
-
-    # Print Response
+    
     global json_analysis
-    json_analysis = response["choices"][0]["message"]["content"]
-
-    print(json_analysis, "\n")
-
-    return True
+    add_message("user", message)
+    json_analysis = get_response(vma_config["Parsing and Analysis"]["model"])
 
 
 # 3. Transforming and Refactoring
@@ -77,43 +71,67 @@ def transforming_and_refactoring():
     response = get_response(vma_config["Transformating and Refactoring"]["model"])
 
     # Write migrated code to 'migrated' folder
-    content = response["choices"][0]["message"]["content"]
 
     # This is the whole message, not just the code
     # Sadly, GPT models aren't really able to just output their target without small talk
-    print(content, "\n")
+    # I'm scared some 'bugs' (more cases where you will need to re-run) will arrise here because
+    # It's not really possible to ensure that the model will always format it's response correctly
+    # This shouldn't be too much of an issue though, if it is, allow UMA to process this step with a more qualified model.
 
-    # Split content into just code
     global code
-    code = content.split("```")[1].split("\n", 1)[1]
+    code = response
+    print(code)
 
 
-# Processing
+# 4. Processing and Parsing
 def processing_and_parsing():
     print("4. Processing\n")
     add_message("user", vma_config["Processing and Parsing"]["prompt"])
 
     response = get_response(vma_config["Processing and Parsing"]["model"])
-    content = response["choices"][0]["message"]["content"]
-
     global filename
-    filename = content.split("```")[1].split("\n", 1)[0]
+    filename = re.search(r'```(.*?)```', response, re.DOTALL).group(1)
+
     print(filename)
 
     # Write content to the file
     with open(f"migrated/{filename}", "w") as f:
         f.write(code)
 
+# 5. Collaboration
+def collaboration():
+    print("5. Collaboration\n")
+    add_message("user", vma_config["Collaboration"]["prompt"])
+
+    get_response(vma_config["Collaboration"]["model"])
+
+    
+    userInput = input("\nEnter your message (/exit to quit): ")
+    while userInput != '/exit':
+        add_message("user", userInput)
+        get_response(vma_config["Collaboration"]["model"])
+        userInput = input("\nEnter your message (/exit to quit): ")
 
 def get_response(model):
     response = openai.ChatCompletion.create(
         model=model,
+        stream=True,
         temperature=0,
         messages=messages,
         api_key=os.getenv("OPENAI_APIKEY"),
     )
 
-    return response
+    collected_messages = []
+    for chunk in response:
+        try:
+            collected_messages.append(chunk['choices'][0]['delta']['content'])
+            print(chunk['choices'][0]['delta']['content'], end='')
+        except:
+            collected_messages.append(chunk['choices'][0]['delta'])
+            print(chunk['choices'][0]['delta'], end='')
+
+
+    return ''.join([str(elem) for elem in collected_messages])
 
 
 def add_message(role, code):
@@ -125,6 +143,8 @@ if __name__ == "__main__":
         print("'to-migrate/' directory is empty! Nothing to migrate.")
         print("Quiting...")
     else:
+        initialization()
         parsing_and_analysis()
         transforming_and_refactoring()
         processing_and_parsing()
+        collaboration()
