@@ -13,12 +13,12 @@ subprocess.run(["python", "vma_config.py"])
 # These are the different steps of the VMA Pipeline
 # 1. Initialization
 # Load agent config
-print("1. Initialization\n")
+print("1. Initialization")
 
 with open("vma_config.json", "r") as vma_config:
     vma_config = json.load(vma_config)
 
-print("VMA_Config Initialized!")
+print("VMA_Config Initialized!\n")
 
 # Initalize VMA
 messages = [{"role": "system", "content": vma_config["init"]["prompt"]}]
@@ -30,6 +30,8 @@ json_analysis = ""
 def scan_dir(dir):
     files = []
     for path in os.scandir(dir):
+        if path.name == ".gitkeep":
+            continue
         if path.is_file():
             files.append(f"{path.path}")
         elif path.is_dir():
