@@ -22,6 +22,10 @@ data = {
         "model": "gpt-3.5-turbo",
         "prompt": f"Perform Transformation and Refactoring on the provided JSON Analysis of the codebase, translating it into the {output_value} coding language. Focus solely on generating code and avoid any form of small talk or unrelated outputs. The goal is to efficiently convert the given analysis into functional code in the specified programming language. Make sure to surround the code you write in ```",
     },
+    "Processing": {
+        "model": "gpt-3.5-turbo",
+        "prompt": "For the migrated code in {output_value}, your task in the 'Processing' step is to determine the new file name and extension. Consider conventions of the target language. Output the new file name and extension (together) wrapped in triple backticks (```). It is essential that only the new file name is in between the backticks. Otherwise it will not work.",
+    },
 }
 
 with open("vma_config.json", "w") as json_file:

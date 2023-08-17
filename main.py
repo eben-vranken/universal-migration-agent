@@ -1,6 +1,10 @@
 # Packages
-import openai, json, subprocess, os, re
+import openai, json, subprocess, os
 
+# Environment Variables
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Run the vma_config.json compiler
 subprocess.run(["python", "vma_config.py"])
@@ -13,6 +17,8 @@ print("1. Initialization\n")
 
 with open("vma_config.json", "r") as vma_config:
     vma_config = json.load(vma_config)
+
+print("VMA_Config Initialized!")
 
 # Initalize VMA
 messages = [{"role": "system", "content": vma_config["init"]["prompt"]}]
@@ -45,7 +51,9 @@ def parsing_and_analysis():
         f = open(f"{file}", "r")
         files[file] = f.read()
 
-    print(files)
+    if files == {}:
+        print("'to-migrate/' directory is empty! Nothing to migrate.")
+        return False
 
     message = f"{vma_config['PAA']['prompt']}{files}"
     add_message("user", message)
@@ -56,6 +64,8 @@ def parsing_and_analysis():
     json_analysis = response["choices"][0]["message"]["content"]
 
     print(json_analysis, "\n")
+
+    return True
 
 
 # 3. Transforming and Refactoring
@@ -77,12 +87,26 @@ def transforming_and_refactoring():
     print(content, "\n")
 
     # Split content into just code
+    global code
     code = content.split("```")[1].split("\n", 1)[1]
 
-    print(code)
 
+# Processing
+def processing():
+    print("4. Processing\n")
+    add_message("user", vma_config["Processing"]["prompt"])
+
+    response = get_response(vma_config["Processing"]["model"])
+    content = response["choices"][0]["message"]["content"]
+
+    global filename
+    filename = content.split("```")[1].split("\n", 1)[0]
+    print(filename)
+
+
+def parsing():
     # Write content to the file
-    with open("migrated/index.py", "w") as f:
+    with open(f"migrated/{filename}", "w") as f:
         f.write(code)
 
 
@@ -91,7 +115,7 @@ def get_response(model):
         model=model,
         temperature=0,
         messages=messages,
-        api_key="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",
+        api_key=os.getenv("OPENAI_APIKEY"),
     )
 
     return response
@@ -102,5 +126,9 @@ def add_message(role, code):
 
 
 if __name__ == "__main__":
-    parsing_and_analysis()
-    transforming_and_refactoring()
+    parseSuccessful = parsing_and_analysis()
+    if parseSuccessful:
+        transforming_and_refactoring()
+
+    processing()
+    parsing()
