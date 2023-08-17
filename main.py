@@ -42,20 +42,17 @@ def scan_dir(dir):
     return files
 
 
+# Scan the entire 'to-migrate' directory
+# Read each file individually
+files = {}
+for file in scan_dir(root_dir):
+    f = open(f"{file}", "r")
+    files[file] = f.read()
+
+
 # 2. Parsing and Analysis
 def parsing_and_analysis():
     print("2. Parsing and Analysis")
-
-    # Scan the entire 'to-migrate' directory
-    # Read each file individually
-    files = {}
-    for file in scan_dir(root_dir):
-        f = open(f"{file}", "r")
-        files[file] = f.read()
-
-    if files == {}:
-        print("'to-migrate/' directory is empty! Nothing to migrate.")
-        return False
 
     message = f"{vma_config['PAA']['prompt']}{files}"
     add_message("user", message)
@@ -128,9 +125,11 @@ def add_message(role, code):
 
 
 if __name__ == "__main__":
-    parseSuccessful = parsing_and_analysis()
-    if parseSuccessful:
+    if files == {}:
+        print("'to-migrate/' directory is empty! Nothing to migrate.")
+        print("Quiting...")
+    else:
+        parsing_and_analysis()
         transforming_and_refactoring()
-
-    processing()
-    parsing()
+        processing()
+        parsing()
