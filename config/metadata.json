@@ -1,7 +1,0 @@
-{
-    "project_name": "vue-migration-agent",
-    "version": "0.0.1",
-    "author": "Eben Vranken",
-    "description": "VMA is an LLM-Agent that automates the process of migrating existing codebases from Vue 2 to Vue 3.",
-    "release_date": "11/08/2023"
-}

@@ -1,12 +1,10 @@
-# Metadata Files
-from config.metadata_loader import read_config, print_project_info
-
 # Packages
-import openai, json, subprocess
+import openai, json, subprocess, os, re
 
 
 # Run the vma_config.json compiler
 subprocess.run(["python", "vma_config.py"])
+
 
 # These are the different steps of the VMA Pipeline
 # 1. Initialization
@@ -18,60 +16,91 @@ with open("vma_config.json", "r") as vma_config:
 
 # Initalize VMA
 messages = [{"role": "system", "content": vma_config["init"]["prompt"]}]
+root_dir = "to-migrate/"
+json_analysis = ""
+
+
+# Recursive function to read everything of a directory
+def scan_dir(dir):
+    files = []
+    for path in os.scandir(dir):
+        if path.is_file():
+            files.append(f"{path.path}")
+        elif path.is_dir():
+            f = scan_dir(f"{dir}{path.name}/")
+            for file in f:
+                files.append(file)
+
+    return files
 
 
 # 2. Parsing and Analysis
 def parsing_and_analysis():
     print("2. Parsing and Analysis")
-    add_message("user", vma_config["PAA"]["prompt"])
 
-    with open("to-migrate\App.vue", "r") as to_migrate_code:
-        add_message("user", to_migrate_code.read())
-        to_migrate_code.close()
+    # Scan the entire 'to-migrate' directory
+    # Read each file individually
+    files = {}
+    for file in scan_dir(root_dir):
+        f = open(f"{file}", "r")
+        files[file] = f.read()
 
+    print(files)
+
+    message = f"{vma_config['PAA']['prompt']}{files}"
+    add_message("user", message)
     response = get_response(vma_config["PAA"]["model"])
 
     # Print Response
-    print(response['choices'][0], "\n")
+    global json_analysis
+    json_analysis = response["choices"][0]["message"]["content"]
+
+    print(json_analysis, "\n")
+
 
 # 3. Transforming and Refactoring
 def transforming_and_refactoring():
     print("3. Transforming and Refactoring\n")
-    add_message("user", vma_config["TAR"]["prompt"])
+
+    message = (
+        f"Provided is the JSON Analysis: {json_analysis}. {vma_config['TAR']['prompt']}"
+    )
+    add_message("user", message)
 
     response = get_response(vma_config["TAR"]["model"])
 
-    # Print response
-    print(response['choices'][0], "\n")
-
     # Write migrated code to 'migrated' folder
-    content = response["choices"][0]["message"]
+    content = response["choices"][0]["message"]["content"]
+
+    # This is the whole message, not just the code
+    # Sadly, GPT models aren't really able to just output their target without small talk
+    print(content, "\n")
+
+    # Split content into just code
+    code = content.split("```")[1].split("\n", 1)[1]
+
+    print(code)
 
     # Write content to the file
-    with open("migrated/App.vue", "w") as f:
-        f.write(json.dumps(content))
+    with open("migrated/index.py", "w") as f:
+        f.write(code)
+
 
 def get_response(model):
     response = openai.ChatCompletion.create(
         model=model,
         temperature=0,
         messages=messages,
-        api_key="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",
+        api_key="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",
     )
 
     return response
+
 
 def add_message(role, code):
     messages.append({"role": role, "content": code})
 
 
 if __name__ == "__main__":
-    # Project information
-    config_path = "config/metadata.json"
-    project_config = read_config(config_path)
-    print_project_info(project_config)
-
     parsing_and_analysis()
     transforming_and_refactoring()
-
-    print("\nMigration Complete!")
