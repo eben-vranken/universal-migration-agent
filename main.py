@@ -21,7 +21,7 @@ with open("vma_config.json", "r") as vma_config:
 print("VMA_Config Initialized!\n")
 
 # Initalize VMA
-messages = [{"role": "system", "content": vma_config["init"]["prompt"]}]
+messages = [{"role": "system", "content": vma_config["Initialization"]["prompt"]}]
 root_dir = "to-migrate/"
 json_analysis = ""
 
@@ -54,9 +54,9 @@ for file in scan_dir(root_dir):
 def parsing_and_analysis():
     print("2. Parsing and Analysis")
 
-    message = f"{vma_config['PAA']['prompt']}{files}"
+    message = f"{vma_config['Parsing and Analysis']['prompt']}{files}"
     add_message("user", message)
-    response = get_response(vma_config["PAA"]["model"])
+    response = get_response(vma_config["Parsing and Analysis"]["model"])
 
     # Print Response
     global json_analysis
@@ -71,12 +71,10 @@ def parsing_and_analysis():
 def transforming_and_refactoring():
     print("3. Transforming and Refactoring\n")
 
-    message = (
-        f"Provided is the JSON Analysis: {json_analysis}. {vma_config['TAR']['prompt']}"
-    )
+    message = f"Provided is the JSON Analysis: {json_analysis}. {vma_config['Transformating and Refactoring']['prompt']}"
     add_message("user", message)
 
-    response = get_response(vma_config["TAR"]["model"])
+    response = get_response(vma_config["Transformating and Refactoring"]["model"])
 
     # Write migrated code to 'migrated' folder
     content = response["choices"][0]["message"]["content"]
@@ -93,9 +91,9 @@ def transforming_and_refactoring():
 # Processing
 def processing_and_parsing():
     print("4. Processing\n")
-    add_message("user", vma_config["Processing"]["prompt"])
+    add_message("user", vma_config["Processing and Parsing"]["prompt"])
 
-    response = get_response(vma_config["Processing"]["model"])
+    response = get_response(vma_config["Processing and Parsing"]["model"])
     content = response["choices"][0]["message"]["content"]
 
     global filename
