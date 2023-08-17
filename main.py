@@ -91,7 +91,7 @@ def transforming_and_refactoring():
 
 
 # Processing
-def processing():
+def processing_and_parsing():
     print("4. Processing\n")
     add_message("user", vma_config["Processing"]["prompt"])
 
@@ -102,8 +102,6 @@ def processing():
     filename = content.split("```")[1].split("\n", 1)[0]
     print(filename)
 
-
-def parsing():
     # Write content to the file
     with open(f"migrated/{filename}", "w") as f:
         f.write(code)
@@ -131,5 +129,4 @@ if __name__ == "__main__":
     else:
         parsing_and_analysis()
         transforming_and_refactoring()
-        processing()
-        parsing()
+        processing_and_parsing()
